@@ -1,13 +1,13 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
@@ -16,9 +16,9 @@ export default defineConfig({
     cors: true,
   },
   build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    minify: 'terser',
+    outDir: "dist",
+    assetsDir: "assets",
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true,
@@ -34,6 +34,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['vue', 'vue-router', 'vuex'],
+    include: ["vue", "vue-router", "vuex"],
   },
-})
+});

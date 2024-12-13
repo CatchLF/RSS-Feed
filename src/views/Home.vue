@@ -1,18 +1,17 @@
 <template>
-  <div class="home">
-    <h1>RSS阅读器</h1>
-    <div class="add-feed">
-      <input v-model="newFeedUrl" placeholder="输入RSS源URL" />
-      <button @click="addFeed">添加</button>
+  <div class="min-h-screen p-6 bg-gray-100 home">
+    <h1 class="mb-6 text-3xl font-bold text-center text-gray-800">RSS 阅读器</h1>
+    <div class="flex justify-center mb-6 add-feed">
+      <input v-model="newFeedUrl" placeholder="输入 RSS 订阅源 URL" class="w-full max-w-md p-2 mr-2 border" />
+      <button @click="addFeed" class="px-4 py-2 text-white bg-blue-500 rounded">添加订阅源</button>
     </div>
-    <div class="main-content">
-      <FeedList
-        :feeds="feeds"
-        @select-feed="selectFeed"
-        @delete-feed="deleteFeed"
-        @refresh-feed="refreshFeed"
-      />
-      <FeedContent :articles="articles" @mark-as-read="markArticleAsRead" />
+    <div class="flex space-x-6 main-content">
+      <FeedList :feeds="feeds" @select-feed="selectFeed" @delete-feed="deleteFeed" @refresh-feed="refreshFeed"
+        class="w-1/4 p-4 bg-white rounded shadow-lg" />
+      <div class="flex-grow p-4 bg-white rounded shadow-lg feed-content-wrapper">
+        <FeedContent :articles="articles" :selectedFeed="selectedFeed" :feeds="feeds"
+          @mark-as-read="markArticleAsRead" />
+      </div>
     </div>
   </div>
 </template>
@@ -20,7 +19,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import Parser from 'rss-parser/dist/rss-parser.min.js';
-import { addFeed as dbAddFeed, getAllFeeds, deleteFeed as dbDeleteFeed, addArticles, getArticlesByFeed, markArticleAsRead as dbMarkArticleAsRead, deleteArticlesByFeed, getFeedByUrl } from '@/services/db';
+import { addFeed as dbAddFeed, getAllFeeds, deleteFeed as dbDeleteFeed, addArticles, getArticlesByFeed, markArticleAsRead as dbMarkArticleAsRead, deleteArticlesByFeed, getAllArticles } from '@/services/db';
 import type { Feed, Article } from '@/types';
 import { formatDate } from '@/utils/dateFormatter';
 import FeedList from '@/components/FeedList.vue';
@@ -31,12 +30,16 @@ const parser = new Parser();
 const feeds = ref<Feed[]>([]);
 const articles = ref<Article[]>([]);
 const newFeedUrl = ref('');
+const selectedFeed = ref<Feed | null>(null);
 
 const loadFeeds = async () => {
   feeds.value = await getAllFeeds();
+  articles.value = await getAllArticles();
 };
 
 onMounted(loadFeeds);
+
+
 
 const addFeed = async () => {
   if (newFeedUrl.value) {
@@ -116,7 +119,7 @@ const refreshFeed = async (feed: Feed) => {
     articles.value = await getAllArticles();
     articles.value.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 
-    if (selectedFeedId.value === feed.id) {
+    if (selectedFeed.value && selectedFeed.value?.id === feed.id) {
       // 如果当前选中的是刚刚刷新的订阅源，更新显示的文章
       articles.value = articles.value.filter(article => article.feedId === feed.id);
     }
@@ -128,14 +131,3 @@ const refreshFeed = async (feed: Feed) => {
   }
 };
 </script>
-
-<style scoped>
-.add-feed {
-  margin-bottom: 20px;
-}
-
-.main-content {
-  display: flex;
-  gap: 20px;
-}
-</style>
